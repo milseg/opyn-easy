@@ -5,7 +5,7 @@
 4. Lists oTokens(options) bought (what oTokens does it have on balance)
 5. Waits for expiry date
 
-With opyn-easy library all of these steps would be encapsulated into a single **buy_option(..)** call
+With opyn-easy library all of these steps would be encapsulated into a single **buy_option(...)** call
 
 --- Rollover ---
 - Check bid market price for an oToken
@@ -22,7 +22,7 @@ With opyn-easy library all of these steps would be encapsulated into a single **
 5. Receives and Sells oToken and gets premium
 6. Query vaults short positions
 
-With opyn-easy library all of these steps would be encapsulated into a single **sell_option(..)** call
+With opyn-easy library all of these steps would be encapsulated into a single **sell_option(...)** call
 
 ## OPTION SELLER WITH POSSIBLE ENHANCEMENT
 This implementation depends on having a VaultBridge.sol smart contract. This contract is responsible for creating vaults for every 
