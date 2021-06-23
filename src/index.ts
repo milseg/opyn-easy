@@ -1,1 +1,1 @@
-export { default as TradeApi } from './entities/TradeApi';
+export { default as TradeApi } from "./entities/TradeApi"
