@@ -9,5 +9,13 @@ module.exports = {
   ],
   rules: {
     "@typescript-eslint/no-unused-vars": ["warn", { args: "none" }],
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-this-alias": [
+      "error",
+      {
+        allowDestructuring: true, // Allow `const { props, state } = this`; false by default
+        allowedNames: ["vm"], // Allow `const vm= this`; `[]` by default
+      },
+    ],
   },
 }
