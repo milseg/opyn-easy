@@ -22,8 +22,8 @@ export default class TradeApi {
     //await web3.eth.getBalance(this.account)
   }
 
-  public async getAccount() {
-    let accounts = await this.web3.eth.getAccounts()
+  public async getAccount(): Promise<string> {
+    const accounts = await this.web3.eth.getAccounts()
     if (accounts.length < 1) {
       throw new Error("An account must be set for provider/wallet")
     }
