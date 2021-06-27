@@ -1,11 +1,14 @@
 import "dotenv/config"
 
 import Web3 from "web3"
+import fetch from "node-fetch"
 import { EthNetworks, SubgraphOToken } from "./types"
 import { ContractSendMethod, Contract } from "web3-eth-contract"
 import { gammaControllerABI } from "../../abis/gammaControllerABI"
 
-const gammaControllerAddress = {
+const gammaControllerAddress: {
+  [key in EthNetworks]: string
+} = {
   [EthNetworks.Mainnet]: "0x4ccc2339F87F6c59c6893E1A678c2266cA58dC72",
   [EthNetworks.Ropsten]: "0x7e9beaccdccee88558aaa2dc121e52ec6226864e",
   [EthNetworks.Kovan]: "0xdee7d0f8ccc0f7ac7e45af454e5e7ec1552e8e4e",
@@ -14,8 +17,7 @@ const gammaControllerAddress = {
 export const gammaControllerProxyContract = async (
   web3: Web3
 ): Promise<Contract> => {
-  const chainId = await web3.eth.getChainId()
-  //@ts-ignore
+  const chainId: EthNetworks = await web3.eth.getChainId()
   const gammaAddress = gammaControllerAddress[chainId]
   if (process.env.DEBUG_ENABLED) {
     console.log("gammaAddress", gammaAddress)
@@ -72,14 +74,18 @@ const postQuery = async (endpoint: string, query: string) => {
 
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000"
 
-export const blacklistOTokens = {
+export const blacklistOTokens: {
+  [key in EthNetworks]: [string]
+} = {
   [EthNetworks.Mainnet]: [ZERO_ADDR],
   [EthNetworks.Ropsten]: [ZERO_ADDR],
   [EthNetworks.Kovan]: ["0x81300ac27ac2470713602b4d8a73dfcc85b779b1"],
 }
 
 const isPublic = process.env.APP_PUBLIC === "true"
-const subgraphEndpoints = {
+const subgraphEndpoints: {
+  [key in EthNetworks]: string
+} = {
   [EthNetworks.Mainnet]: isPublic
     ? "https://api.thegraph.com/subgraphs/name/opynfinance/gamma-mainnet"
     : "https://api.thegraph.com/subgraphs/name/opynfinance/playground",
