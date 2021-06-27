@@ -45,7 +45,7 @@ export default class TradeApi {
     if (process.env.DEBUG_ENABLED) {
       console.log("otokens fetched")
       console.log(`otokens length ${otokens.length}`)
-      console.log(`otokens {otokens}`)
+      console.log(`otokens index 0 ${JSON.stringify(otokens[0])}`)
     }
 
     return otokens
