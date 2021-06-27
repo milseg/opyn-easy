@@ -1,7 +1,7 @@
 import "dotenv/config"
 
 import Web3 from "web3"
-import { EthNetworks } from "./types"
+import { EthNetworks, SubgraphOToken } from "./types"
 import { ContractSendMethod, Contract } from "web3-eth-contract"
 import { gammaControllerABI } from "../../abis/gammaControllerABI"
 
@@ -38,4 +38,125 @@ export async function resolveTxOnConfirmation(
       })
       .on("error", (error) => reject(error))
   })
+}
+
+//network helpers
+export const networkIdToTxUrl = {
+  [EthNetworks.Mainnet]: "https://etherscan.io/tx",
+  [EthNetworks.Ropsten]: "https://ropsten.etherscan.io/tx",
+  [EthNetworks.Kovan]: "https://kovan.etherscan.io/tx",
+}
+
+export const networkIdToAddressUrl = {
+  [EthNetworks.Mainnet]: "https://etherscan.io/address",
+  [EthNetworks.Kovan]: "https://kovan.etherscan.io/address",
+  [EthNetworks.Ropsten]: "https://ropsten.etherscan.io/address",
+}
+
+//subgraph and blockchain query helpers
+const postQuery = async (endpoint: string, query: string) => {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  }
+  const url = endpoint
+  const response = await fetch(url, options)
+  const data = await response.json()
+  if (data.errors) {
+    throw new Error(data.errors[0].message)
+  } else {
+    return data
+  }
+}
+
+const ZERO_ADDR = "0x0000000000000000000000000000000000000000"
+
+export const blacklistOTokens = {
+  [EthNetworks.Mainnet]: [ZERO_ADDR],
+  [EthNetworks.Ropsten]: [ZERO_ADDR],
+  [EthNetworks.Kovan]: ["0x81300ac27ac2470713602b4d8a73dfcc85b779b1"],
+}
+
+const isPublic = process.env.APP_PUBLIC === "true"
+const subgraphEndpoints = {
+  [EthNetworks.Mainnet]: isPublic
+    ? "https://api.thegraph.com/subgraphs/name/opynfinance/gamma-mainnet"
+    : "https://api.thegraph.com/subgraphs/name/opynfinance/playground",
+  [EthNetworks.Kovan]: isPublic
+    ? "https://api.thegraph.com/subgraphs/name/opynfinance/gamma-kovan"
+    : "https://api.thegraph.com/subgraphs/name/opynfinance/gamma-internal-kovan",
+  [EthNetworks.Ropsten]:
+    "https://api.thegraph.com/subgraphs/name/opynfinance/gamma-ropsten",
+}
+
+/**
+ * Get all oTokens
+ */
+export async function getOTokens(
+  networkId: EthNetworks,
+  errorCallback: (err: string) => void
+): Promise<SubgraphOToken[]> {
+  const query = `
+  {
+    otokens (
+      first: 1000, 
+      orderBy: createdAt, 
+      orderDirection: desc
+    ) {
+      id
+      symbol
+      name
+      strikeAsset {
+        id
+        symbol
+        decimals
+      }
+      underlyingAsset {
+        id
+        symbol
+        decimals
+      }
+      collateralAsset {
+        id
+        symbol
+        decimals
+      }
+      strikePrice
+      isPut
+      expiryTimestamp
+      createdAt
+      createdTx
+      creator
+    }
+  }`
+  try {
+    const response = await postQuery(subgraphEndpoints[networkId], query)
+    const oTokens = response.data.otokens.filter(
+      (otoken: { id: string }) =>
+        !blacklistOTokens[networkId].includes(otoken.id)
+    )
+    return oTokens
+  } catch (error) {
+    errorCallback(error.toString())
+    return []
+  }
+}
+
+//0x helpers
+export const ZeroXEndpoint: {
+  [key in EthNetworks]: { http: string; ws: string }
+} = {
+  1: {
+    http: "https://api.0x.org/",
+    ws: "wss://api.0x.org/sra/v4",
+  },
+  3: {
+    http: "https://ropsten.api.0x.org/",
+    ws: "wss://ropsten.api.0x.org/sra/v4",
+  },
+  42: {
+    http: "https://kovan.api.0x.org/",
+    ws: "wss://kovan.api.0x.org/sra/v4",
+  },
 }
